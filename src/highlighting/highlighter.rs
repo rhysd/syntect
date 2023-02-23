@@ -152,7 +152,7 @@ impl<'a, 'b> Iterator for RangedHighlightIterator<'a, 'b> {
             (self.text.len(), ScopeStackOp::Noop)
         };
         // println!("{} - {:?}   {}:{}", self.index, self.pos, self.state.path.len(), self.state.styles.len());
-        let style = *self.state.styles.last().unwrap_or(&Style::default());
+        let style = self.state.styles.last().copied().unwrap_or_else(|| self.highlighter.get_default());
         let text = &self.text[self.pos..end];
         let range = Range { start: self.pos, end };
         {
