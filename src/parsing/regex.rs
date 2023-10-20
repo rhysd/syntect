@@ -262,6 +262,75 @@ mod regex_impl {
     }
 }
 
+#[cfg(all(
+    feature = "regex-pcre2",
+    not(any(feature = "regex-onig", feature = "regex-fancy")),
+))]
+mod regex_impl {
+    use pcre2::bytes::{Regex as InnerRegex, RegexBuilder};
+    use std::error::Error;
+
+    #[derive(Clone, Debug, Eq, PartialEq)]
+    pub struct Region {
+        positions: Vec<Option<(usize, usize)>>,
+    }
+
+    pub fn new_region() -> Region {
+        Region {
+            positions: Vec::with_capacity(8),
+        }
+    }
+
+    #[derive(Debug)]
+    pub struct Regex {
+        regex: InnerRegex,
+    }
+
+    impl Regex {
+        pub fn new(regex_str: &str) -> Result<Regex, Box<dyn Error + Send + Sync + 'static>> {
+            let regex = RegexBuilder::new().utf(true).build(regex_str)?;
+            Ok(Regex { regex })
+        }
+
+        pub fn is_match(&self, text: &str) -> bool {
+            self.regex.is_match(text.as_bytes()).unwrap_or(false)
+        }
+
+        pub fn search(
+            &self,
+            text: &str,
+            begin: usize,
+            end: usize,
+            region: Option<&mut Region>,
+        ) -> bool {
+            if let Some(region) = region {
+                region.positions.clear();
+                for captures in self
+                    .regex
+                    .captures_iter(text[begin..end].as_bytes())
+                    .flatten()
+                {
+                    for i in 0..captures.len() {
+                        let pos = captures
+                            .get(i)
+                            .map(|mat| (begin + mat.start(), begin + mat.end()));
+                        region.positions.push(pos);
+                    }
+                }
+                !region.positions.is_empty()
+            } else {
+                matches!(self.regex.find(text.as_bytes()), Ok(Some(_)))
+            }
+        }
+    }
+
+    impl Region {
+        pub fn pos(&self, i: usize) -> Option<(usize, usize)> {
+            self.positions.get(i).copied().unwrap_or(None)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

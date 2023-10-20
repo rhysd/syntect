@@ -32,6 +32,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 once_cell = "1.8"
 thiserror = "1.0"
+pcre2 = { version = "0.2.5", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.3", features = [ "html_reports" ] }
@@ -53,6 +54,7 @@ dump-create = ["flate2", "bincode"]
 
 regex-fancy = ["fancy-regex"]
 regex-onig = ["onig"]
+regex-pcre2 = ["pcre2"]
 
 parsing = ["regex-syntax", "fnv", "dump-create", "dump-load"]
 
@@ -73,6 +75,7 @@ yaml-load = ["yaml-rust", "parsing"]
 default-onig = ["parsing", "default-syntaxes", "default-themes", "html", "plist-load", "yaml-load", "dump-load", "dump-create", "regex-onig"]
 # In order to switch to the fancy-regex engine, disable default features then add the default-fancy feature
 default-fancy = ["parsing", "default-syntaxes", "default-themes", "html", "plist-load", "yaml-load", "dump-load", "dump-create", "regex-fancy"]
+default-pcre2 = ["parsing", "default-syntaxes", "default-themes", "html", "plist-load", "yaml-load", "dump-load", "dump-create", "regex-pcre2"]
 default = ["default-onig"]
 
 # [profile.release]
